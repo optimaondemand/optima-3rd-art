@@ -490,8 +490,6 @@ function markMicro(box) { box.classList.toggle('done'); }
       b.addEventListener('mouseout', function(){ this.style.background='linear-gradient(135deg,#0E1C42,#1A2D5A)'; });
       b.onclick = function(){
         if(typeof switchTab === 'function') switchTab(nextTabId);
-        var bar = document.getElementById('tabBar');
-        if(bar){ setTimeout(function(){ bar.scrollIntoView({behavior:'smooth',block:'start'}); window.scrollBy(0,-10); }, 50); }
       };
       wrap.appendChild(b);
       panel.appendChild(wrap);
