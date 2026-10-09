@@ -176,11 +176,14 @@
       crackleGain.gain.linearRampToValueAtTime(on ? .35 : 0, t + (on ? .1 : 1));
     } catch (e) {}
   }
+  const allAudio = [];
+  function hardStopAll(){ allAudio.forEach(x => { try { x.pause(); x.playbackRate = 1; x.volume = 1; } catch (e) {} }); }
   function loadAudio(i){
-    if (audio) { audio.pause(); }
+    cancelAnimationFrame(rateRaf); hardStopAll();
     audio = new Audio('audio/' + RECORDS[i].file);
     audio.loop = true; audio.preload = 'auto';
     ['preservesPitch','mozPreservesPitch','webkitPreservesPitch'].forEach(k => { if (k in audio) audio[k] = false; });
+    allAudio.push(audio);
   }
   // ramp playbackRate (+ volume) for spin-up / wind-down
   function rampRate(a, from, to, ms, volFrom, volTo, done){
@@ -218,47 +221,57 @@
 
   let playing = false, angle = 0, speed = 0, target = 0, last = performance.now(), spawnAcc = 0, armTimer = null, swapping = false;
 
+  let stopTimer = null;
+  function start(){
+    if (playing) return;
+    playing = true; rec.setAttribute('aria-pressed', true); hint.style.opacity = '0';
+    clearTimeout(armTimer); clearTimeout(stopTimer);
+    if (!audio) loadAudio(current);
+    const a = audio;
+    arm.classList.add('down'); light.classList.add('on');
+    armTimer = setTimeout(() => {
+      if (!playing || a !== audio) return;
+      hardStopAll();
+      crackleOn(true); target = 200; burst(6);
+      a.playbackRate = .55; a.volume = .2;
+      const p = a.play();
+      if (p && p.catch) p.catch(() => { $('nowTitle').textContent = 'Tap the record again to play'; });
+      now.classList.add('playing');
+      rampRate(a, .55, 1, 700, .2, 1);
+    }, reduce ? 0 : 750);
+    paintLabel(current);
+  }
+  function stop(){
+    if (!playing) return;
+    playing = false; rec.setAttribute('aria-pressed', false);
+    clearTimeout(armTimer); clearTimeout(stopTimer);
+    target = 0; light.classList.remove('on'); now.classList.remove('playing');
+    crackleOn(false);
+    const a = audio;
+    if (a && !a.paused) rampRate(a, a.playbackRate, .3, 1200, a.volume, 0, hardStopAll);
+    stopTimer = setTimeout(hardStopAll, 1300);           // backup: always silence, even if animation frames pause
+    armTimer = setTimeout(() => arm.classList.remove('down'), 250);
+    paintLabel(current);
+  }
+  function toggle(){ if (swapping) return; playing ? stop() : start(); }
+
   function choose(i){
-    if (swapping || i === current) { if (i === current && !playing) toggle(); return; }
+    if (swapping) return;
+    if (i === current) { if (!playing) start(); return; }
     swapping = true; hint.style.opacity = '0';
     [...crate.children].forEach((b, j) => b.setAttribute('aria-pressed', j === i));
     const wasPlaying = playing;
-    const swap = () => {
+    if (wasPlaying) stop();
+    setTimeout(() => {
       discWrap.classList.add('out');
       setTimeout(() => {
-        current = i; loadAudio(i); paintLabel(i); angle = 0;
+        clearTimeout(stopTimer); current = i; loadAudio(i); paintLabel(i); angle = 0;
         discWrap.classList.remove('out');
-        setTimeout(() => { swapping = false; if (wasPlaying) toggle(); }, reduce ? 0 : 480);
+        setTimeout(() => { swapping = false; if (wasPlaying) start(); }, reduce ? 0 : 480);
       }, reduce ? 0 : 450);
-    };
-    if (wasPlaying) { toggle(); setTimeout(swap, reduce ? 0 : 700); } else swap();
+    }, wasPlaying && !reduce ? 700 : 0);
   }
 
-  function toggle(){
-    playing = !playing;
-    rec.setAttribute('aria-pressed', playing);
-    hint.style.opacity = '0';
-    clearTimeout(armTimer);
-    if (!audio) loadAudio(current);
-    const a = audio;
-    if (playing) {
-      arm.classList.add('down'); light.classList.add('on');
-      armTimer = setTimeout(() => {
-        crackleOn(true); target = 200; burst(6);
-        a.playbackRate = .55; a.volume = 0;
-        const p = a.play();
-        if (p && p.catch) p.catch(() => { $('nowTitle').textContent = 'Tap the record again to play'; });
-        now.classList.add('playing');
-        rampRate(a, .55, 1, 700, .2, 1);
-      }, reduce ? 0 : 750);
-    } else {
-      target = 0; light.classList.remove('on'); now.classList.remove('playing');
-      crackleOn(false);
-      if (!a.paused) rampRate(a, a.playbackRate, .3, 1200, a.volume, 0, () => { a.pause(); a.playbackRate = 1; a.volume = 1; });
-      armTimer = setTimeout(() => arm.classList.remove('down'), 250);
-    }
-    paintLabel(current);
-  }
   rec.addEventListener('click', toggle);
 
   /* ===== floating notes ===== */
