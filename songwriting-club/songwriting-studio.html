@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Songwriting Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Righteous&family=Space+Mono:wght@400;700&family=Nunito:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --cream:#f6ecd9; --paper:#fffaf0; --ink:#2a1a12; --muted:#6b5440;
+    --orange:#e0612b; --mustard:#e9a93b; --teal:#2a8c82; --navy:#0e1c42;
+    --plum:#7a5cc0; --rose:#b5487a; --cyan:#55c8e8; --line:#e2d3b6;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{font-family:'Nunito',Arial,sans-serif;background:var(--cream);color:var(--ink);
+    background-image:radial-gradient(rgba(42,26,18,.06) 1px,transparent 1px);background-size:14px 14px;}
+  .wrap{max-width:960px;margin:0 auto;padding:18px 16px 30px}
+
+  /* ---------- Header ---------- */
+  .studio-head{display:flex;align-items:center;gap:16px;background:var(--ink);color:var(--cream);
+    border-radius:16px;padding:14px 18px;position:relative;overflow:hidden}
+  .studio-head::after{content:"";position:absolute;left:0;right:0;bottom:0;height:10px;
+    background:linear-gradient(to bottom,var(--orange) 0 33%,var(--mustard) 33% 66%,var(--teal) 66%)}
+  .mini-vinyl{width:62px;height:62px;flex:none;border-radius:50%;
+    background:repeating-radial-gradient(circle,#151515 0 2px,#222 2px 4px);display:grid;place-items:center;
+    animation:spin 4s linear infinite;animation-play-state:paused}
+  .mini-vinyl.on{animation-play-state:running}
+  .mini-vinyl i{width:22px;height:22px;border-radius:50%;background:var(--orange);border:2px solid var(--mustard);display:grid;place-items:center}
+  .mini-vinyl i::after{content:"";width:5px;height:5px;border-radius:50%;background:var(--cream)}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .studio-head h1{font-family:'Righteous',cursive;font-weight:400;font-size:30px;margin:0;letter-spacing:1px}
+  .studio-head h1 span{color:var(--orange)}
+  .studio-head p{margin:2px 0 8px;font-family:'Space Mono',monospace;font-size:12px;color:var(--mustard);letter-spacing:2px}
+
+  /* ---------- Tabs ---------- */
+  .tabs{display:flex;gap:8px;margin:16px 0 0;flex-wrap:wrap}
+  .tab{font-family:'Righteous',cursive;font-size:17px;border:3px solid var(--ink);border-bottom:none;
+    background:var(--paper);color:var(--ink);padding:10px 16px;border-radius:12px 12px 0 0;cursor:pointer;
+    display:flex;align-items:center;gap:8px;transition:transform .15s}
+  .tab:hover{transform:translateY(-2px)}
+  .tab .side{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1px;opacity:.7}
+  .tab[aria-selected="true"]{background:var(--orange);color:var(--paper)}
+  .tab:focus-visible,button:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid var(--cyan);outline-offset:2px}
+  .panel{background:var(--paper);border:3px solid var(--ink);border-radius:0 14px 14px 14px;padding:20px;min-height:600px}
+  .panel[hidden]{display:none}
+  .panel h2{font-family:'Righteous',cursive;font-weight:400;font-size:26px;margin:0 0 4px}
+  .lede{color:var(--muted);margin:0 0 16px;font-size:15px}
+
+  .btn{font-family:'Righteous',cursive;font-size:17px;border:3px solid var(--ink);border-radius:40px;
+    padding:10px 22px;cursor:pointer;background:var(--mustard);color:var(--ink);box-shadow:0 4px 0 var(--ink);
+    transition:transform .08s, box-shadow .08s}
+  .btn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--ink)}
+  .btn.primary{background:var(--orange);color:var(--paper)}
+  .btn.teal{background:var(--teal);color:var(--paper)}
+  .btn.ghost{background:var(--paper)}
+  .btn.sm{font-size:14px;padding:7px 14px}
+
+  /* ---------- Prompt Spinner ---------- */
+  .reels{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:16px}
+  .reel{background:var(--cream);border:3px solid var(--ink);border-radius:12px;overflow:hidden;display:flex;flex-direction:column}
+  .reel-top{display:flex;justify-content:space-between;align-items:center;padding:7px 10px;color:var(--paper);
+    font-family:'Space Mono',monospace;font-weight:700;font-size:12px;letter-spacing:2px}
+  .lock{background:rgba(255,255,255,.2);border:2px solid rgba(255,255,255,.6);color:var(--paper);border-radius:20px;
+    font-size:11px;padding:2px 9px;cursor:pointer;font-family:'Space Mono',monospace}
+  .lock[aria-pressed="true"]{background:var(--paper);color:var(--ink);border-color:var(--paper)}
+  .reel-val{padding:14px 12px;min-height:86px;display:flex;align-items:center;font-size:17px;font-weight:700;line-height:1.3}
+  .reel-val.spinning{animation:blur .1s linear infinite;color:var(--muted)}
+  @keyframes blur{0%{transform:translateY(-3px)}50%{transform:translateY(3px)}100%{transform:translateY(-3px)}}
+  .reel-val.pop{animation:pop .35s ease}
+  @keyframes pop{0%{transform:scale(.9)}60%{transform:scale(1.05)}100%{transform:scale(1)}}
+  .spin-row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+  .card-out{margin-top:18px;background:var(--ink);color:var(--cream);border-radius:14px;padding:18px 20px;position:relative}
+  .card-out .tag{font-family:'Space Mono',monospace;color:var(--mustard);font-size:12px;letter-spacing:3px}
+  .card-out p{margin:8px 0 0;font-size:17px;line-height:1.55}
+  .card-out b{color:var(--mustard)}
+  .copied{font-family:'Space Mono',monospace;font-size:12px;color:var(--teal);margin-left:4px}
+
+  /* ---------- Chord Lab ---------- */
+  .controls{display:flex;flex-wrap:wrap;gap:14px;align-items:end;margin-bottom:16px}
+  .ctl label{display:block;font-family:'Space Mono',monospace;font-size:11px;letter-spacing:2px;font-weight:700;color:var(--muted);margin-bottom:4px}
+  select,input[type=range]{font-family:'Nunito',sans-serif;font-size:15px}
+  select{border:3px solid var(--ink);border-radius:10px;padding:7px 10px;background:var(--cream);color:var(--ink);font-weight:700}
+  input[type=range]{accent-color:var(--orange);width:150px}
+  .prog-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-bottom:18px}
+  .prog{text-align:left;border:3px solid var(--ink);border-radius:12px;background:var(--cream);padding:10px 12px;cursor:pointer;
+    font-family:'Nunito',sans-serif;color:var(--ink);position:relative;overflow:hidden}
+  .prog::before{content:"";position:absolute;left:0;top:0;bottom:0;width:8px;background:var(--c,var(--orange))}
+  .prog .pn{font-family:'Righteous',cursive;font-size:17px;padding-left:6px}
+  .prog .pr{font-family:'Space Mono',monospace;font-size:12px;padding-left:6px;color:var(--muted)}
+  .prog .pm{font-size:13px;padding-left:6px}
+  .prog[aria-pressed="true"]{background:var(--ink);color:var(--cream)}
+  .prog[aria-pressed="true"] .pr{color:var(--mustard)}
+  .deck{background:var(--ink);border-radius:16px;padding:18px;color:var(--cream)}
+  .deck-top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+  .deck-title{font-family:'Righteous',cursive;font-size:22px}
+  .deck-sub{font-family:'Space Mono',monospace;font-size:12px;color:var(--mustard);letter-spacing:1px}
+  .chords{display:flex;flex-wrap:wrap;gap:10px}
+  .chord{flex:1 1 90px;min-width:84px;max-width:150px;border-radius:12px;border:3px solid #4a3a30;background:#3a2a20;color:var(--cream);
+    padding:12px 8px;text-align:center;cursor:pointer;transition:transform .1s, background .1s}
+  .chord .cn{font-family:'Righteous',cursive;font-size:28px;line-height:1}
+  .chord .rn{font-family:'Space Mono',monospace;font-size:13px;color:var(--mustard);margin-top:4px}
+  .chord.active{background:var(--orange);border-color:var(--mustard);transform:translateY(-4px) scale(1.04)}
+  .chord.active .rn{color:var(--ink)}
+  .eq{display:flex;gap:4px;align-items:end;height:30px}
+  .eq span{width:6px;background:var(--teal);border-radius:2px;height:6px;transition:height .12s}
+  .play-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:16px}
+  .toggle{display:flex;align-items:center;gap:6px;font-weight:700;font-size:14px;color:var(--cream);cursor:pointer}
+  .toggle input{accent-color:var(--orange);width:18px;height:18px}
+  .tip{margin-top:14px;background:var(--cream);border-left:6px solid var(--teal);border-radius:8px;padding:10px 14px;font-size:14px}
+
+  /* ---------- Rhythm & Rhyme ---------- */
+  .rr-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media (max-width:720px){.rr-grid{grid-template-columns:1fr}}
+  textarea{width:100%;min-height:330px;border:3px solid var(--ink);border-radius:12px;padding:12px 14px;font-size:16px;line-height:30px;
+    font-family:'Nunito',sans-serif;color:var(--ink);resize:vertical;
+    background:var(--paper) repeating-linear-gradient(to bottom,transparent 0 29px,#d9e6ef 29px 30px);background-position:0 11px}
+  .rr-out{border:3px solid var(--ink);border-radius:12px;background:var(--cream);padding:10px;min-height:330px;overflow:auto}
+  .rr-line{display:grid;grid-template-columns:30px 1fr 34px;gap:8px;align-items:center;padding:5px 6px;border-radius:8px}
+  .rr-line:nth-child(odd){background:rgba(255,255,255,.55)}
+  .rr-letter{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-family:'Righteous',cursive;color:#fff;font-size:15px}
+  .rr-text{font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .rr-text mark{border-radius:4px;padding:0 3px;color:#fff;font-weight:800}
+  .rr-bar{height:6px;border-radius:3px;background:var(--line);margin-top:3px;overflow:hidden}
+  .rr-bar i{display:block;height:100%;background:var(--teal)}
+  .rr-syl{font-family:'Space Mono',monospace;font-weight:700;font-size:15px;text-align:right}
+  .rr-gap{height:12px}
+  .summary{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+  .stat{background:var(--ink);color:var(--cream);border-radius:12px;padding:10px 14px;min-width:140px;flex:1}
+  .stat .k{font-family:'Space Mono',monospace;font-size:11px;letter-spacing:2px;color:var(--mustard)}
+  .stat .v{font-family:'Righteous',cursive;font-size:22px;margin-top:2px;word-break:break-all}
+  .coach{margin-top:12px;background:var(--paper);border:2px dashed var(--orange);border-radius:12px;padding:10px 14px;font-size:14px}
+  .coach li{margin:3px 0}
+  .empty{color:var(--muted);font-style:italic;padding:20px;text-align:center}
+  .foot{text-align:center;font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:2px;margin-top:14px}
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="studio-head">
+    <div class="mini-vinyl" id="vinyl" aria-hidden="true"><i></i></div>
+    <div>
+      <h1>THE <span>STUDIO</span></h1>
+      <p>OAO SONGWRITERS' CLUB · TOOLS FOR WRITERS</p>
+    </div>
+  </header>
+
+  <div class="tabs" role="tablist" aria-label="Studio tools">
+    <button class="tab" role="tab" id="t-spin" aria-controls="p-spin" aria-selected="true"><span class="side">SIDE A</span>🎲 Prompt Spinner</button>
+    <button class="tab" role="tab" id="t-chord" aria-controls="p-chord" aria-selected="false" tabindex="-1"><span class="side">SIDE B</span>🎹 Chord Lab</button>
+    <button class="tab" role="tab" id="t-rr" aria-controls="p-rr" aria-selected="false" tabindex="-1"><span class="side">SIDE C</span>📏 Rhythm &amp; Rhyme</button>
+  </div>
+
+  <!-- ===================== PROMPT SPINNER ===================== -->
+  <section class="panel" role="tabpanel" id="p-spin" aria-labelledby="t-spin">
+    <h2>🎲 Prompt Spinner</h2>
+    <p class="lede">Stuck on what to write? Spin the reels for a song idea. Like one part? <b>Lock it</b> and spin the rest.</p>
+    <div class="reels" id="reels"></div>
+    <div class="spin-row">
+      <button class="btn primary" id="spinBtn">🎰 SPIN THE REELS</button>
+      <button class="btn ghost sm" id="copyBtn">📋 Copy my prompt</button>
+      <span class="copied" id="copied" aria-live="polite"></span>
+    </div>
+    <div class="card-out" id="promptCard" aria-live="polite">
+      <div class="tag">YOUR SONG ASSIGNMENT</div>
+      <p id="promptText">Hit <b>Spin the Reels</b> to get your first prompt.</p>
+    </div>
+  </section>
+
+  <!-- ===================== CHORD LAB ===================== -->
+  <section class="panel" role="tabpanel" id="p-chord" aria-labelledby="t-chord" hidden>
+    <h2>🎹 Chord Lab</h2>
+    <p class="lede">Thousands of songs use the same handful of chord patterns. Pick one, press play, and hum a melody over it. Click any chord card to hear it alone.</p>
+
+    <div class="controls">
+      <div class="ctl"><label for="keySel">KEY</label>
+        <select id="keySel"><option>C</option><option>D</option><option>E</option><option>F</option><option>G</option><option>A</option><option value="A#">B♭</option></select></div>
+      <div class="ctl"><label for="soundSel">SOUND</label>
+        <select id="soundSel"><option value="keys">Electric Keys</option><option value="guitar">Strummy Guitar</option><option value="pad">Dreamy Pad</option></select></div>
+      <div class="ctl"><label for="feelSel">RHYTHM</label>
+        <select id="feelSel"><option value="1">Long ring (1 per bar)</option><option value="2" selected>Half notes (2 per bar)</option><option value="4">Steady (4 per bar)</option></select></div>
+      <div class="ctl"><label for="tempo">TEMPO · <span id="bpmOut">90</span> BPM</label>
+        <input type="range" id="tempo" min="60" max="140" value="90"></div>
+    </div>
+
+    <div class="prog-list" id="progList"></div>
+
+    <div class="deck">
+      <div class="deck-top">
+        <div>
+          <div class="deck-title" id="deckTitle">The Anthem</div>
+          <div class="deck-sub" id="deckSub"></div>
+        </div>
+        <div class="eq" aria-hidden="true" id="eq"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+      </div>
+      <div class="chords" id="chords"></div>
+      <div class="play-row">
+        <button class="btn primary" id="playBtn">▶ PLAY</button>
+        <button class="btn ghost sm" id="stopBtn">■ Stop</button>
+        <label class="toggle"><input type="checkbox" id="loopChk" checked> Loop it</label>
+      </div>
+    </div>
+    <div class="tip" id="chordTip"></div>
+  </section>
+
+  <!-- ===================== RHYTHM & RHYME ===================== -->
+  <section class="panel" role="tabpanel" id="p-rr" aria-labelledby="t-rr" hidden>
+    <h2>📏 Rhythm &amp; Rhyme Checker</h2>
+    <p class="lede">Type or paste your lyrics, one line per row. Leave a blank line between sections. You'll see syllables per line and which line endings rhyme.</p>
+    <div class="rr-grid">
+      <div>
+        <label for="lyrics" style="font-family:'Space Mono',monospace;font-size:11px;letter-spacing:2px;font-weight:700;color:var(--muted)">YOUR LYRICS</label>
+        <textarea id="lyrics" spellcheck="true" placeholder="Type your lyrics here..."></textarea>
+        <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+          <button class="btn ghost sm" id="sampleBtn">✨ Try a sample verse</button>
+          <button class="btn ghost sm" id="clearBtn">🧽 Clear</button>
+        </div>
+      </div>
+      <div>
+        <div style="font-family:'Space Mono',monospace;font-size:11px;letter-spacing:2px;font-weight:700;color:var(--muted)">THE READOUT</div>
+        <div class="rr-out" id="rrOut"><div class="empty">Your lines will show up here as you type. ✍️</div></div>
+      </div>
+    </div>
+    <div class="summary" id="summary"></div>
+    <div class="coach" id="coach" hidden></div>
+    <p style="font-size:12px;color:var(--muted);margin:10px 0 0">Heads up: the checker guesses from spelling, so it can miss rhymes like <i>blue / through</i> or count a syllable wrong. Trust your ears — read it out loud!</p>
+  </section>
+
+  <div class="foot">♪ OPTIMA ACADEMY ONLINE · SONGWRITERS' CLUB ♪</div>
+</div>
+
+<script>
+(() => {
+  /* ================= TABS ================= */
+  const tabs = [...document.querySelectorAll('.tab')];
+  function selectTab(t){
+    tabs.forEach(x => {
+      const on = x === t;
+      x.setAttribute('aria-selected', on);
+      x.tabIndex = on ? 0 : -1;
+      document.getElementById(x.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((t,i) => {
+    t.addEventListener('click', () => selectTab(t));
+    t.addEventListener('keydown', e => {
+      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+        const n = tabs[(i + (e.key === 'ArrowRight' ? 1 : tabs.length - 1)) % tabs.length];
+        selectTab(n); n.focus();
+      }
+    });
+  });
+  const vinyl = document.getElementById('vinyl');
+  const pick = a => a[Math.floor(Math.random() * a.length)];
+
+  /* ================= PROMPT SPINNER ================= */
+  const REELS = [
+    { key:'theme', label:'THEME', color:'var(--orange)', items:[
+      'A friendship that changed', 'The night before something big', 'A place that only exists in memory',
+      'Being the new kid', 'Something you lost and found', 'A road trip with no map', 'The last day of summer',
+      'A promise you kept', 'Feeling invisible in a crowd', 'Your hometown from far away', 'A storm rolling in',
+      'Starting over', 'The sound of your house at night', 'A hero nobody noticed', 'Growing up faster than planned',
+      'Waiting for a text back', 'A second chance', 'The view from the top', 'Two people, one secret', 'An ordinary Tuesday that mattered'
+    ]},
+    { key:'line', label:'FIRST LINE', color:'var(--teal)', items:[
+      '"I left the porch light on for you…"', '"Nobody told me the map was wrong…"', '"There\'s a crack in the ceiling shaped like a bird…"',
+      '"We were loud before we were brave…"', '"The bus pulled away without me…"', '"I wrote your name in the fog on the glass…"',
+      '"Somewhere a radio is playing our song…"', '"My sneakers still have mud from that day…"', '"The stars don\'t care about my homework…"',
+      '"I found an old photo in a library book…"', '"Count to ten and I\'ll be gone…"', '"The hallway echoes when I\'m alone…"',
+      '"I built a fort out of the things you said…"', '"If the ocean had a phone, would it call?"', '"Every streetlight knows my name…"',
+      '"Paper planes and broken pencils…"', '"It started with a knock on the door…"', '"I\'m not the same as I was in June…"'
+    ]},
+    { key:'mood', label:'MOOD', color:'var(--plum)', items:[
+      'Hopeful', 'Bittersweet', 'Fired up', 'Mysterious', 'Goofy', 'Peaceful', 'Restless', 'Proud',
+      'Nostalgic', 'Brave', 'Dreamy', 'Determined', 'Lonely, then hopeful', 'Electric'
+    ]},
+    { key:'style', label:'STYLE', color:'var(--rose)', items:[
+      'Acoustic folk', 'Upbeat pop', 'Country storytelling', 'Lo-fi chill', 'Garage rock', 'Smooth R&B',
+      'Musical theater showstopper', 'Sea shanty', 'Lullaby', '80s synth-pop', 'Indie anthem', 'Gospel-style choir'
+    ]},
+    { key:'twist', label:'CHALLENGE', color:'var(--navy)', items:[
+      'Use a color in every verse', 'Write the chorus first', 'Tell it from an object\'s point of view',
+      'No word "love" allowed', 'Include a question in the hook', 'Every line has 8 syllables',
+      'Use a slant rhyme in each verse', 'Put a weather word in every line of the chorus', 'End with the same line you started with',
+      'Write it as a letter to your future self', 'Include a sound effect word (crash, buzz, tick)', 'Make the bridge change the story',
+      'Use only one-syllable words in the hook', 'Mention a real time of day', 'Write it in second person ("you")'
+    ]}
+  ];
+  const reelsEl = document.getElementById('reels');
+  const state = {}; const locked = {};
+  REELS.forEach(r => {
+    const d = document.createElement('div');
+    d.className = 'reel';
+    d.innerHTML = `<div class="reel-top" style="background:${r.color}"><span>${r.label}</span>
+      <button class="lock" aria-pressed="false" aria-label="Lock ${r.label.toLowerCase()}">🔓 lock</button></div>
+      <div class="reel-val" id="rv-${r.key}">?</div>`;
+    reelsEl.appendChild(d);
+    const lk = d.querySelector('.lock');
+    lk.addEventListener('click', () => {
+      locked[r.key] = !locked[r.key];
+      lk.setAttribute('aria-pressed', locked[r.key]);
+      lk.textContent = locked[r.key] ? '🔒 locked' : '🔓 lock';
+    });
+  });
+  let spinning = false;
+  function spin(){
+    if (spinning) return; spinning = true; vinyl.classList.add('on');
+    const active = REELS.filter(r => !locked[r.key] || !state[r.key]);
+    active.forEach((r, idx) => {
+      const el = document.getElementById('rv-' + r.key);
+      el.classList.remove('pop'); el.classList.add('spinning');
+      const iv = setInterval(() => { el.textContent = pick(r.items); }, 70);
+      setTimeout(() => {
+        clearInterval(iv);
+        let v; do { v = pick(r.items); } while (r.items.length > 1 && v === state[r.key]);
+        state[r.key] = v; el.textContent = v;
+        el.classList.remove('spinning'); void el.offsetWidth; el.classList.add('pop');
+        tick(520 + idx * 60);
+        if (idx === active.length - 1) { spinning = false; vinyl.classList.remove('on'); renderPrompt(); }
+      }, 600 + idx * 280);
+    });
+    if (!active.length) { spinning = false; vinyl.classList.remove('on'); }
+  }
+  function promptString(){
+    return `Write a ${state.mood.toLowerCase()} ${state.style.toLowerCase()} song about "${state.theme.toLowerCase()}." ` +
+      `Start with the line ${state.line} Challenge: ${state.twist.toLowerCase()}.`;
+  }
+  function renderPrompt(){
+    if (!REELS.every(r => state[r.key])) return;
+    document.getElementById('promptText').innerHTML =
+      `Write a <b>${state.mood.toLowerCase()}</b>, <b>${state.style.toLowerCase()}</b> song about <b>${state.theme.toLowerCase()}</b>.<br>` +
+      `Start with: <i>${state.line}</i><br>Challenge: <b>${state.twist}</b>.`;
+  }
+  document.getElementById('spinBtn').addEventListener('click', spin);
+  document.getElementById('copyBtn').addEventListener('click', async () => {
+    const out = document.getElementById('copied');
+    if (!REELS.every(r => state[r.key])) { out.textContent = 'Spin first!'; return; }
+    const txt = promptString();
+    try { await navigator.clipboard.writeText(txt); out.textContent = 'Copied! ✓'; }
+    catch { const ta = document.createElement('textarea'); ta.value = txt; document.body.appendChild(ta); ta.select();
+      try { document.execCommand('copy'); out.textContent = 'Copied! ✓'; } catch { out.textContent = 'Select the text to copy it.'; } ta.remove(); }
+    setTimeout(() => out.textContent = '', 2200);
+  });
+
+  /* ================= AUDIO ================= */
+  let ctx = null, master = null;
+  function audio(){
+    if (!ctx) {
+      ctx = new (window.AudioContext || window.webkitAudioContext)();
+      master = ctx.createDynamicsCompressor();
+      const g = ctx.createGain(); g.gain.value = 0.8;
+      master.connect(g); g.connect(ctx.destination);
+    }
+    if (ctx.state === 'suspended') ctx.resume();
+    return ctx;
+  }
+  function tick(){ /* tiny click when reels land */
+    try { const c = audio(); const o = c.createOscillator(), g = c.createGain(); const t = c.currentTime;
+      o.type = 'square'; o.frequency.value = 1200 + Math.random()*400; g.gain.setValueAtTime(0.05, t);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.05); o.connect(g); g.connect(master); o.start(t); o.stop(t + 0.06);
+    } catch(e){}
+  }
+  const midiHz = m => 440 * Math.pow(2, (m - 69) / 12);
+  function voice(freq, t, dur, sound, vel){
+    const c = ctx, g = c.createGain(), f = c.createBiquadFilter();
+    f.type = 'lowpass';
+    const oscs = [];
+    if (sound === 'pad') {
+      [-6, 6].forEach(d => { const o = c.createOscillator(); o.type = 'sawtooth'; o.frequency.value = freq; o.detune.value = d; oscs.push(o); });
+      f.frequency.value = 1300;
+      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.05*vel, t + 0.35);
+      g.gain.setValueAtTime(0.05*vel, t + Math.max(0.36, dur - 0.1)); g.gain.linearRampToValueAtTime(0.0001, t + dur + 0.6);
+    } else if (sound === 'guitar') {
+      const o = c.createOscillator(); o.type = 'sawtooth'; o.frequency.value = freq; oscs.push(o);
+      f.frequency.setValueAtTime(3200, t); f.frequency.exponentialRampToValueAtTime(500, t + 0.6);
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.09*vel, t + 0.005);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + Math.min(dur + 0.4, 2.2));
+    } else {
+      const o1 = c.createOscillator(); o1.type = 'triangle'; o1.frequency.value = freq;
+      const o2 = c.createOscillator(); o2.type = 'sine'; o2.frequency.value = freq * 2; oscs.push(o1, o2);
+      f.frequency.value = 2600;
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.11*vel, t + 0.01);
+      g.gain.exponentialRampToValueAtTime(0.03*vel, t + 0.4); g.gain.exponentialRampToValueAtTime(0.0001, t + dur + 0.5);
+    }
+    oscs.forEach(o => { o.connect(f); o.start(t); o.stop(t + dur + 1); });
+    f.connect(g); g.connect(master);
+  }
+  function playChord(ch, t, dur, sound, vel = 1){
+    const root = 48 + ch.root; // C3 region
+    const iv = ch.q === 'm' ? [0,3,7] : ch.q === 'dim' ? [0,3,6] : [0,4,7];
+    const notes = [root - 12, ...iv.map(i => root + 12 + i), root + 24]; // bass + voicing
+    const strum = sound === 'guitar' ? 0.03 : sound === 'pad' ? 0 : 0.012;
+    notes.forEach((n, i) => voice(midiHz(n), t + i * strum, dur, sound, i === 0 ? vel * 0.9 : vel * 0.75));
+  }
+
+  /* ================= CHORD LAB ================= */
+  const NAMES = ['C','C♯','D','E♭','E','F','F♯','G','A♭','A','B♭','B'];
+  const KEYS = {C:0,D:2,E:4,F:5,G:7,A:9,'A#':10};
+  // degree: semitones from key + quality
+  const D = { I:[0,''], ii:[2,'m'], iii:[4,'m'], IV:[5,''], iv:[5,'m'], V:[7,''], vi:[9,'m'], bVII:[10,''] };
+  const PROGS = [
+    { name:'The Anthem', rn:['I','V','vi','IV'], mood:'Big, bright, sing-along', c:'var(--orange)',
+      tip:'This is maybe the most-used pattern in pop music. Try singing a chorus over it — it practically begs for one.' },
+    { name:'The Heartstring', rn:['vi','IV','I','V'], mood:'Emotional, yearning', c:'var(--plum)',
+      tip:'Same four chords as The Anthem, just starting on the minor chord. Notice how much sadder it feels? Where you START changes everything.' },
+    { name:'Doo-Wop', rn:['I','vi','IV','V'], mood:'Sweet, retro, 1950s', c:'var(--rose)',
+      tip:'Classic slow-dance sound. Great for a song that looks back on a memory.' },
+    { name:'The Campfire', rn:['I','IV','V','IV'], mood:'Easygoing folk & rock', c:'var(--teal)',
+      tip:'Only three different chords! Lots of folk and rock songs live here. Perfect for storytelling verses.' },
+    { name:'The Dreamer', rn:['I','iii','IV','iv'], mood:'Floaty, wistful', c:'var(--cyan)',
+      tip:'Listen to that last chord: it borrows a minor sound, like a cloud passing over. Try it under a bridge.' },
+    { name:'Smooth Turnaround', rn:['ii','V','I','I'], mood:'Jazzy, resolved', c:'var(--mustard)',
+      tip:'The ii–V–I is the heart of jazz. It feels like coming home. Use it to end a section.' },
+    { name:'The Rebel', rn:['I','bVII','IV','I'], mood:'Gritty, rock & roll', c:'var(--navy)',
+      tip:'That ♭VII chord is borrowed from outside the key. It gives a rebellious, garage-band edge.' },
+    { name:'12-Bar Blues', rn:['I','I','I','I','IV','IV','I','I','V','IV','I','V'], mood:'Bluesy, call-and-response', c:'#8a5a2b',
+      tip:'Twelve bars that started American blues, rock, and more. Try a line, repeat it, then answer it: A–A–B.' }
+  ];
+  let curProg = PROGS[0];
+  const progList = document.getElementById('progList');
+  PROGS.forEach((p, i) => {
+    const b = document.createElement('button');
+    b.className = 'prog'; b.style.setProperty('--c', p.c);
+    b.setAttribute('aria-pressed', i === 0);
+    b.innerHTML = `<div class="pn">${p.name}</div><div class="pr">${p.rn.join(' – ').replace(/b/g,'♭')}</div><div class="pm">${p.mood}</div>`;
+    b.addEventListener('click', () => {
+      [...progList.children].forEach(x => x.setAttribute('aria-pressed', x === b));
+      const wasPlaying = playing; stop(); curProg = p; renderDeck(); if (wasPlaying) play();
+    });
+    progList.appendChild(b);
+  });
+  const keySel = document.getElementById('keySel'), soundSel = document.getElementById('soundSel'),
+        feelSel = document.getElementById('feelSel'), tempo = document.getElementById('tempo'),
+        loopChk = document.getElementById('loopChk'), chordsEl = document.getElementById('chords');
+  tempo.addEventListener('input', () => document.getElementById('bpmOut').textContent = tempo.value);
+  function chordsFor(p){
+    const k = KEYS[keySel.value];
+    return p.rn.map(r => { const [off, q] = D[r]; const root = (k + off) % 12; return { root, q, name: NAMES[root] + q, rn: r.replace('b','♭') }; });
+  }
+  function renderDeck(){
+    document.getElementById('deckTitle').textContent = curProg.name;
+    document.getElementById('deckSub').textContent = `KEY OF ${keySel.options[keySel.selectedIndex].text} · ${curProg.mood.toUpperCase()}`;
+    document.getElementById('chordTip').innerHTML = '💡 <b>Songwriter tip:</b> ' + curProg.tip;
+    chordsEl.innerHTML = '';
+    chordsFor(curProg).forEach((ch, i) => {
+      const d = document.createElement('button'); d.className = 'chord';
+      d.setAttribute('aria-label', `Play ${ch.name} chord`);
+      d.innerHTML = `<div class="cn">${ch.name}</div><div class="rn">${ch.rn}</div>`;
+      d.addEventListener('click', () => { const c = audio(); playChord(ch, c.currentTime + 0.02, 1.4, soundSel.value); flash(i, 600); });
+      chordsEl.appendChild(d);
+    });
+  }
+  keySel.addEventListener('change', () => { const w = playing; stop(); renderDeck(); if (w) play(); });
+  function flash(i, ms){ const el = chordsEl.children[i]; if (!el) return; el.classList.add('active'); setTimeout(() => el.classList.remove('active'), ms); }
+
+  let playing = false, timer = null, step = 0, nextTime = 0, uiTimers = [];
+  const eqBars = [...document.querySelectorAll('#eq span')];
+  function scheduler(){
+    const c = ctx; const beat = 60 / tempo.value; const hits = +feelSel.value; const bar = beat * 4; const hitLen = bar / hits;
+    const chs = chordsFor(curProg);
+    while (nextTime < c.currentTime + 0.25) {
+      const ci = Math.floor(step / hits), hi = step % hits;
+      if (ci >= chs.length) {
+        if (loopChk.checked) { step = 0; continue; }
+        uiTimers.push(setTimeout(stop, (nextTime - c.currentTime) * 1000 + 600)); clearInterval(timer); timer = null; return;
+      }
+      const vel = hi === 0 ? 1 : (hits === 4 && hi % 2 ? 0.6 : 0.8);
+      playChord(chs[ci], nextTime, hits === 1 ? bar * 0.95 : hitLen * 0.9, soundSel.value, vel);
+      if (hi === 0) { const delay = Math.max(0, (nextTime - c.currentTime) * 1000);
+        const idx = ci; uiTimers.push(setTimeout(() => { if (!playing) return; flash(idx, bar * 1000 - 60); bounceEq(); }, delay)); }
+      else { const delay = Math.max(0, (nextTime - c.currentTime) * 1000); uiTimers.push(setTimeout(() => playing && bounceEq(), delay)); }
+      nextTime += hitLen; step++;
+    }
+  }
+  function bounceEq(){ eqBars.forEach(b => { b.style.height = (6 + Math.random() * 24) + 'px'; }); setTimeout(() => eqBars.forEach(b => b.style.height = '6px'), 180); }
+  function play(){
+    const c = audio(); if (playing) return; playing = true; step = 0; nextTime = c.currentTime + 0.08;
+    vinyl.classList.add('on'); document.getElementById('playBtn').textContent = '♪ PLAYING…';
+    scheduler(); timer = setInterval(scheduler, 60);
+  }
+  function stop(){
+    playing = false; clearInterval(timer); timer = null; uiTimers.forEach(clearTimeout); uiTimers = [];
+    [...chordsEl.children].forEach(x => x.classList.remove('active'));
+    vinyl.classList.remove('on'); document.getElementById('playBtn').textContent = '▶ PLAY';
+    if (master && ctx) { // fade out ringing notes quickly
+      const old = master; master = ctx.createDynamicsCompressor(); const g = ctx.createGain(); g.gain.value = 0.8;
+      master.connect(g); g.connect(ctx.destination);
+      try { const fade = ctx.createGain(); old.disconnect(); old.connect(fade); fade.connect(ctx.destination);
+        fade.gain.setValueAtTime(0.8, ctx.currentTime); fade.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.15); } catch(e){}
+    }
+  }
+  document.getElementById('playBtn').addEventListener('click', play);
+  document.getElementById('stopBtn').addEventListener('click', stop);
+  renderDeck();
+
+  /* ================= RHYTHM & RHYME ================= */
+  const EXC = { the:1, every:3, everything:4, everyone:4, fire:1, hour:1, our:1, poem:2, being:2, seeing:2, people:2,
+    little:2, middle:2, simple:2, table:2, apple:2, maybe:2, create:2, idea:3, ideas:3, area:3, real:1, really:2,
+    heaven:2, even:2, quiet:2, science:2, lion:2, radio:3, piano:3, video:3, business:2, different:3, family:3,
+    beautiful:3, chocolate:3, evening:2, interesting:3, favorite:3, camera:3, someone:2, somewhere:2, sometimes:2,
+    lonely:2, lately:2, homework:2, wonderful:3, cruel:2, flower:2, power:2, tower:2, shower:2, flour:1, prayer:1,
+    hoping:2, dying:2, crying:2, trying:2, flying:2, going:2, doing:2, knowing:2, glowing:2, ocean:2, alive:2,
+    whole:1, gone:1, done:1, none:1, one:1, once:1, love:1, above:2, move:1, gave:1, live:1, give:1, came:1, sure:1,
+    "you're":1, "we're":1, "they're":1, "i'm":1, "i'll":1, "i've":1, "i'd":1, "don't":1, "can't":1, "won't":1,
+    "didn't":2, "wasn't":2, "couldn't":2, "wouldn't":2, "shouldn't":2, "you'll":1, "it's":1, "that's":1 };
+  function syllables(word){
+    let w = word.toLowerCase().replace(/[^a-z']/g, '');
+    if (!w) return 0;
+    if (EXC[w] != null) return EXC[w];
+    w = w.replace(/'/g, '');
+    if (w.length <= 3) return 1;
+    let base = w;
+    // plural / past suffixes
+    if (/(?:[^aeiouy]es|ed)$/.test(base) && !/(?:ted|ded|ses|zes|ces|ges|xes|shes|ches)$/.test(base)) base = base.replace(/(?:es|ed)$/, '');
+    else if (/e$/.test(base) && !/[^aeiouy]le$/.test(base)) base = base.replace(/e$/, '');
+    base = base.replace(/^y/, '');
+    const m = base.match(/[aeiouy]{1,2}/g);
+    let n = m ? m.length : 1;
+    if (/(?:ia|io|eo|ua|uo)/.test(base) && !/(?:tion|sion|cious|tious|cial|tial)/.test(base)) n += 1;
+    return Math.max(1, n);
+  }
+  // rhyme key: normalized ending sound guess
+  function rhymeKey(word){
+    let w = word.toLowerCase().replace(/[^a-z]/g, '');
+    if (!w) return null;
+    const SUB = [
+      [/(ight|ite|yte)$/, 'AIT'], [/(ind|ined|ynd)$/, 'AIND'], [/(ime|yme)$/, 'AIM'], [/(ine|yne)$/, 'AIN'], [/(ire|yre|ier|igher)$/, 'AIR1'],
+      [/(ide|yde|ied)$/, 'AID1'], [/(ies|ise|ize|yes)$/, 'AIZ'], [/(eep|eap)$/, 'EEP'], [/(eet|eat|ete)$/, 'EET'], [/(eam|eem|eme)$/, 'EEM'],
+      [/(een|ean|ene)$/, 'EEN'], [/(eal|eel)$/, 'EEL'], [/(eed|ead|ede)$/, 'EED'], [/(ear|eer|ere)$/, 'EER'],
+      [/(ay|ey|eigh|ae)$/, 'AY'], [/(ain|ane|eign)$/, 'AYN'], [/(ate|ait|eight)$/, 'AYT'], [/(ake|aik|ache)$/, 'AYK'], [/(ame|aim)$/, 'AYM'],
+      [/(ade|aid|ayed|eighed)$/, 'AYD'], [/(ays|aze|aise|aze)$/, 'AYZ'],
+      [/(ow|oe|o|ough)$/, 'OH'], [/(one|own|oan)$/, 'OHN'], [/(oat|ote)$/, 'OHT'], [/(old|oled|olled)$/, 'OHLD'], [/(ole|oll|oal|owl)$/, 'OHL'],
+      [/(ome|oam)$/, 'OHM'], [/(ose|ows|oes|oze)$/, 'OHZ'], [/(oad|ode|owed)$/, 'OHD'],
+      [/(oo|ew|ue|ough|ou|u)$/, 'OO'], [/(oon|une)$/, 'OON'], [/(ool|ule)$/, 'OOL'], [/(oom|ume|omb)$/, 'OOM'], [/(oot|ute|uit)$/, 'OOT'],
+      [/(oud|owd|owed)$/, 'OWD'], [/(ound|owned)$/, 'OWND'], [/(ower|our)$/, 'OWR'], [/(out|oubt)$/, 'OWT'],
+      [/(art|eart)$/, 'ART'], [/(ark)$/, 'ARK'], [/(ar|are)$/, 'AR'],
+      [/(air|are|ear|ere|eir)$/, 'AIR'], [/(ee|ea|e|i)$/, 'EE'], [/([^aeiou])y$/, 'EE'],
+    ];
+    // one-syllable "y" words like my, sky, fly, by, why, try
+    if (/^[^aeiou]{1,3}y$/.test(w) || /(igh|ie|uy|ye)$/.test(w) && w.length <= 5) return 'AI';
+    for (const [re, k] of SUB) if (re.test(w)) return k;
+    const m = w.match(/[aeiouy]+[^aeiouy]*e?$/);
+    return m ? m[0].replace(/e$/, '') : w;
+  }
+  const PAL = ['#e0612b','#2a8c82','#7a5cc0','#b5487a','#c47f12','#0e1c42','#3c8dbc','#8a5a2b'];
+  const lyricsEl = document.getElementById('lyrics'), out = document.getElementById('rrOut');
+  const esc = s => s.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  function analyze(){
+    const raw = lyricsEl.value.replace(/\r/g, '');
+    const lines = raw.split('\n');
+    if (!raw.trim()) {
+      out.innerHTML = '<div class="empty">Your lines will show up here as you type. ✍️</div>';
+      document.getElementById('summary').innerHTML = ''; document.getElementById('coach').hidden = true; return;
+    }
+    // group into sections for per-section rhyme letters
+    const data = lines.map(l => {
+      const words = l.match(/[A-Za-z']+/g) || [];
+      const syl = words.reduce((a, w) => a + syllables(w), 0);
+      const last = words.length ? words[words.length - 1] : '';
+      return { text: l, syl, last, key: last ? rhymeKey(last) : null, blank: !l.trim() };
+    });
+    const maxSyl = Math.max(12, ...data.map(d => d.syl));
+    let html = '', letters = {}, nextL = 0, schemeParts = [], cur = '';
+    const allSyl = [];
+    data.forEach(d => {
+      if (d.blank) { if (cur) { schemeParts.push(cur); cur = ''; } letters = {}; nextL = 0; html += '<div class="rr-gap"></div>'; return; }
+      allSyl.push(d.syl);
+      let L = '–';
+      if (d.key) { if (!(d.key in letters)) letters[d.key] = String.fromCharCode(65 + (nextL++ % 26)); L = letters[d.key]; }
+      cur += L;
+      const color = PAL[(L.charCodeAt(0) - 65) % PAL.length] || '#999';
+      const idx = d.last ? d.text.lastIndexOf(d.last) : -1;
+      const shown = idx >= 0 ? esc(d.text.slice(0, idx)) + `<mark style="background:${color}">${esc(d.last)}</mark>` + esc(d.text.slice(idx + d.last.length)) : esc(d.text);
+      html += `<div class="rr-line"><div class="rr-letter" style="background:${color}" title="Rhyme group ${L}">${L}</div>
+        <div><div class="rr-text">${shown}</div><div class="rr-bar"><i style="width:${Math.min(100, d.syl / maxSyl * 100)}%"></i></div></div>
+        <div class="rr-syl" title="syllables">${d.syl}</div></div>`;
+    });
+    if (cur) schemeParts.push(cur);
+    out.innerHTML = html;
+
+    // repeated-line hook detection
+    const counts = {}; data.filter(d => !d.blank).forEach(d => { const k = d.text.trim().toLowerCase().replace(/[^a-z' ]/g, ''); if (k) counts[k] = (counts[k] || 0) + 1; });
+    const hook = Object.entries(counts).filter(([, n]) => n > 1).sort((a, b) => b[1] - a[1])[0];
+    const avg = allSyl.reduce((a, b) => a + b, 0) / (allSyl.length || 1);
+    const secs = []; let sc = []; data.forEach(d => { if (d.blank) { if (sc.length) secs.push(sc); sc = []; } else sc.push(d.syl); }); if (sc.length) secs.push(sc);
+    const worst = secs.map(a => [Math.min(...a), Math.max(...a)]).sort((a, b) => (b[1]-b[0]) - (a[1]-a[0]))[0] || [0,0];
+    const spread = worst[1] - worst[0];
+    document.getElementById('summary').innerHTML = `
+      <div class="stat"><div class="k">LINES</div><div class="v">${allSyl.length}</div></div>
+      <div class="stat"><div class="k">AVG SYLLABLES</div><div class="v">${avg.toFixed(1)}</div></div>
+      <div class="stat"><div class="k">RHYME SCHEME</div><div class="v">${schemeParts.join(' / ') || '–'}</div></div>
+      <div class="stat"><div class="k">HOOK SPOTTED</div><div class="v" style="font-size:15px">${hook ? '“' + esc(hook[0].slice(0, 40)) + '”' : 'Not yet'}</div></div>`;
+    const tips = [];
+    if (spread >= 5 && allSyl.length > 1) tips.push(`In one section, your lines range from <b>${worst[0]}</b> to <b>${worst[1]}</b> syllables. Lines that are close in length are easier to sing to the same melody. Try trimming or adding a word or two.`);
+    else if (allSyl.length > 1) tips.push('Nice! Within each section, your line lengths are pretty even, so they\'ll fit a repeating melody well. 🎶');
+    const noRhyme = schemeParts.every(s => new Set(s.replace(/–/g, '').split('')).size === s.replace(/–/g, '').length);
+    if (allSyl.length >= 4 && noRhyme) tips.push('No rhymes spotted yet. Try making lines 2 and 4 rhyme (ABCB) — a classic songwriter move. Slant rhymes count too!');
+    if (!hook && allSyl.length >= 4) tips.push('No repeated line yet. A chorus usually repeats its hook. Which line could you sing twice?');
+    if (hook) tips.push('You repeated a line — that\'s your hook! Make sure it\'s short and easy to sing.');
+    const coach = document.getElementById('coach');
+    coach.hidden = !tips.length;
+    coach.innerHTML = '<b>🎙️ Studio Coach says:</b><ul style="margin:6px 0 0;padding-left:20px">' + tips.map(t => `<li>${t}</li>`).join('') + '</ul>';
+  }
+  let deb; lyricsEl.addEventListener('input', () => { clearTimeout(deb); deb = setTimeout(analyze, 150); });
+  document.getElementById('sampleBtn').addEventListener('click', () => {
+    lyricsEl.value = "I left the porch light on tonight\nThe moths are dancing in the glow\nI keep the window open wide\nIn case you never told me no\n\nCome home, come home\nThe road is long but you're not alone\nCome home, come home\nI'll be the light when the streetlights are gone";
+    analyze();
+  });
+  document.getElementById('clearBtn').addEventListener('click', () => { lyricsEl.value = ''; analyze(); lyricsEl.focus(); });
+})();
+</script>
+</body>
+</html>
