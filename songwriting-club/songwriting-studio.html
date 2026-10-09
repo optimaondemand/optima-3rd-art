@@ -144,7 +144,7 @@
     <div class="mini-vinyl" id="vinyl" aria-hidden="true"><i></i></div>
     <div>
       <h1>THE <span>STUDIO</span></h1>
-      <p>OAO SONGWRITERS' CLUB · TOOLS FOR WRITERS</p>
+      <p>OAO SONGWRITING CLUB · TOOLS FOR WRITERS</p>
     </div>
   </header>
 
@@ -177,7 +177,7 @@
 
     <div class="controls">
       <div class="ctl"><label for="keySel">KEY</label>
-        <select id="keySel"><option>C</option><option>D</option><option>E</option><option>F</option><option>G</option><option>A</option><option value="A#">B♭</option></select></div>
+        <select id="keySel"><optgroup label="Major keys (circle of fifths)"><option value="M0">C major</option><option value="M7">G major</option><option value="M2">D major</option><option value="M9">A major</option><option value="M4">E major</option><option value="M11">B major</option><option value="M6">F♯ / G♭ major</option><option value="M1">D♭ major</option><option value="M8">A♭ major</option><option value="M3">E♭ major</option><option value="M10">B♭ major</option><option value="M5">F major</option></optgroup><optgroup label="Minor keys (circle of fifths)"><option value="m9">A minor</option><option value="m4">E minor</option><option value="m11">B minor</option><option value="m6">F♯ minor</option><option value="m1">C♯ minor</option><option value="m8">G♯ minor</option><option value="m3">E♭ / D♯ minor</option><option value="m10">B♭ minor</option><option value="m5">F minor</option><option value="m0">C minor</option><option value="m7">G minor</option><option value="m2">D minor</option></optgroup></select></div>
       <div class="ctl"><label for="soundSel">SOUND</label>
         <select id="soundSel"><option value="keys">Electric Keys</option><option value="guitar">Strummy Guitar</option><option value="pad">Dreamy Pad</option></select></div>
       <div class="ctl"><label for="feelSel">RHYTHM</label>
@@ -229,7 +229,7 @@
     <p style="font-size:12px;color:var(--muted);margin:10px 0 0">Heads up: the checker guesses from spelling, so it can miss rhymes like <i>blue / through</i> or count a syllable wrong. Trust your ears — read it out loud!</p>
   </section>
 
-  <div class="foot">♪ OPTIMA ACADEMY ONLINE · SONGWRITERS' CLUB ♪</div>
+  <div class="foot">♪ OPTIMA ACADEMY ONLINE · SONGWRITING CLUB ♪</div>
 </div>
 
 <script>
@@ -397,8 +397,12 @@
   }
 
   /* ================= CHORD LAB ================= */
-  const NAMES = ['C','C♯','D','E♭','E','F','F♯','G','A♭','A','B♭','B'];
-  const KEYS = {C:0,D:2,E:4,F:5,G:7,A:9,'A#':10};
+  const SHARP = ['C','C♯','D','D♯','E','F','F♯','G','G♯','A','A♯','B'];
+  const FLAT  = ['C','D♭','D','E♭','E','F','G♭','G','A♭','A','B♭','B'];
+  // keys whose chords are spelled with sharps (others use flats)
+  const SHARP_KEYS = { M: [7,2,9,4,11,6], m: [4,11,6,1,8] };
+  // the same progressions, translated into minor (i, ii°, III, iv, V, VI, VII)
+  const DMIN = { I:[0,'m','i'], ii:[2,'dim','ii°'], iii:[3,'','III'], IV:[5,'m','iv'], iv:[5,'m','iv'], V:[7,'','V'], vi:[8,'','VI'], bVII:[10,'','VII'] };
   // degree: semitones from key + quality
   const D = { I:[0,''], ii:[2,'m'], iii:[4,'m'], IV:[5,''], iv:[5,'m'], V:[7,''], vi:[9,'m'], bVII:[10,''] };
   const PROGS = [
@@ -437,8 +441,13 @@
         loopChk = document.getElementById('loopChk'), chordsEl = document.getElementById('chords');
   tempo.addEventListener('input', () => document.getElementById('bpmOut').textContent = tempo.value);
   function chordsFor(p){
-    const k = KEYS[keySel.value];
-    return p.rn.map(r => { const [off, q] = D[r]; const root = (k + off) % 12; return { root, q, name: NAMES[root] + q, rn: r.replace('b','♭') }; });
+    const mode = keySel.value[0], k = +keySel.value.slice(1);
+    const names = SHARP_KEYS[mode].includes(k) ? SHARP : FLAT;
+    return p.rn.map(r => {
+      const [off, q, lbl] = mode === 'm' ? DMIN[r] : D[r];
+      const root = (k + off) % 12;
+      return { root, q, name: names[root] + (q === 'dim' ? '°' : q), rn: lbl || r.replace('b','♭') };
+    });
   }
   function renderDeck(){
     document.getElementById('deckTitle').textContent = curProg.name;
