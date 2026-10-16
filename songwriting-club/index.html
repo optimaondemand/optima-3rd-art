@@ -17,6 +17,7 @@
   .rpanel[hidden]{display:none}
   .pgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
   .pgrid > div{width:auto !important;margin:0 !important}
+  .pgrid > div:last-child:nth-child(odd){grid-column:1 / -1}
   @media (max-width:760px){.pgrid{grid-template-columns:1fr}}
 </style>
 </head>
@@ -160,7 +161,7 @@
 <div style="padding: 10px 24px 24px 24px;">
   <div class="rtabs" role="tablist" aria-label="Club rules">
     <button class="rtab" role="tab" id="rt-1" aria-controls="rp-1" aria-selected="true">🎙️ Quick House Rules</button>
-    <button class="rtab" role="tab" id="rt-2" aria-controls="rp-2" aria-selected="false" tabindex="-1">🧭 4 Club Guiding Principles</button>
+    <button class="rtab" role="tab" id="rt-2" aria-controls="rp-2" aria-selected="false" tabindex="-1">🧭 3 Club Guiding Principles</button>
   </div>
   <div class="rpanel" role="tabpanel" id="rp-1" aria-labelledby="rt-1" style="background-color: #e0612b; color: #fffaf0;">
     <div style="font-family: 'Arial Black', Arial, sans-serif; font-size: 20px; margin-bottom: 8px;">Quick House Rules</div>
@@ -173,7 +174,7 @@
     </div>
   </div>
   <div class="rpanel" role="tabpanel" id="rp-2" aria-labelledby="rt-2" hidden style="background-color: #2a1a12; color: #f6ecd9;">
-    <div style="font-family: 'Arial Black', Arial, sans-serif; font-size: 20px; margin-bottom: 12px; color: #e9a93b;">4 Club Guiding Principles</div>
+    <div style="font-family: 'Arial Black', Arial, sans-serif; font-size: 20px; margin-bottom: 12px; color: #e9a93b;">3 Club Guiding Principles</div>
     <div class="pgrid">
     <div style="display: inline-block; vertical-align: top; width: 440px; max-width: 100%; box-sizing: border-box; margin: 0 10px 12px 0; background-color: #fffaf0; color: #2a1a12; border-radius: 12px; border: 2px solid #2a1a12; border-left: 10px solid #e0612b; padding: 14px 16px;">
       <div style="font-family: 'Arial Black', Arial, sans-serif; font-size: 20px; color: #e0612b; margin-bottom: 6px;"><span style="font-size: 22px;">🎨</span> Just create.</div>
@@ -182,10 +183,6 @@
     <div style="display: inline-block; vertical-align: top; width: 440px; max-width: 100%; box-sizing: border-box; margin: 0 10px 12px 0; background-color: #fffaf0; color: #2a1a12; border-radius: 12px; border: 2px solid #2a1a12; border-left: 10px solid #2a8c82; padding: 14px 16px;">
       <div style="font-family: 'Arial Black', Arial, sans-serif; font-size: 20px; color: #2a8c82; margin-bottom: 6px;"><span style="font-size: 22px;">🙌</span> Encourage.</div>
       <div style="font-family: Arial, sans-serif; font-size: 15px; line-height: 1.55;">We&rsquo;ll all be sharing a lot of our creations in this club. Maybe we&rsquo;re all beginners. Maybe we&rsquo;re all bad at it right now. Encouragement fuels motivation. And what are we going to do without any motivation? Yes, there will be times for constructive criticism here, but criticism is best given when paired with compliments.</div>
-    </div>
-    <div style="display: inline-block; vertical-align: top; width: 440px; max-width: 100%; box-sizing: border-box; margin: 0 10px 12px 0; background-color: #fffaf0; color: #2a1a12; border-radius: 12px; border: 2px solid #2a1a12; border-left: 10px solid #7a5cc0; padding: 14px 16px;">
-      <div style="font-family: 'Arial Black', Arial, sans-serif; font-size: 20px; color: #7a5cc0; margin-bottom: 6px;"><span style="font-size: 22px;">🧱</span> AI.</div>
-      <div style="font-family: Arial, sans-serif; font-size: 15px; line-height: 1.55;">This group is meant to give us a space for us to use our creative powers and to build things ourselves. Things we can call our own. For this reason, AI should not be used to make music for us. However, it can be a useful tool for things like finding rhymes, giving prompt ideas, and explaining musical principles. Think of it like Legos. The whole point of buying a Lego set is so YOU can build it yourself.</div>
     </div>
     <div style="display: inline-block; vertical-align: top; width: 440px; max-width: 100%; box-sizing: border-box; margin: 0 10px 12px 0; background-color: #fffaf0; color: #2a1a12; border-radius: 12px; border: 2px solid #2a1a12; border-left: 10px solid #b5487a; padding: 14px 16px;">
       <div style="font-family: 'Arial Black', Arial, sans-serif; font-size: 20px; color: #b5487a; margin-bottom: 6px;"><span style="font-size: 22px;">😜</span> Don&rsquo;t take yourself too seriously.</div>
